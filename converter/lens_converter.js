@@ -101,8 +101,10 @@ NlmToLensConverter.Prototype = function() {
   // Helpers
   // --------
 
-  this.getName = function(nameEl) {
-    if (!nameEl) return "N/A";
+  this.getName = function(nameEl, stringNameEl) {
+    if (!nameEl) {
+      return stringNameEl ? stringNameEl.textContent : "N/A";
+    }
     var names = [];
 
     var surnameEl = nameEl.querySelector("surname");
@@ -338,7 +340,10 @@ NlmToLensConverter.Prototype = function() {
     if (editor) {
       var content = [];
 
-      var name = this.getName(editor.querySelector('name'));
+      var name = this.getName(
+        editor.querySelector('name'),
+        editor.querySelector('string-name')
+      );
       if (name) content.push(name);
       var inst = editor.querySelector("institution");
       if (inst) content.push(inst.textContent);
@@ -722,8 +727,9 @@ NlmToLensConverter.Prototype = function() {
 
     // Extracting equal contributions
     var nameEl = contrib.querySelector("name");
-    if (nameEl) {
-      contribNode.name = this.getName(nameEl);
+    var stringNameEl = contrib.querySelector("string-name");
+    if (nameEl || stringNameEl) {
+      contribNode.name = this.getName(nameEl, stringNameEl);
     } else {
       var collab = contrib.querySelector("collab");
       // Assuming this is an author group
@@ -767,7 +773,11 @@ NlmToLensConverter.Prototype = function() {
     // Find xrefs within contrib elements
     _.each(refs, function(ref) {
       var c = ref.parentNode;
-      if (c !== contrib) result.push(this.getName(c.querySelector("name")));
+      if (c !== contrib) {
+        var nameEl = c.querySelector("name");
+        var stringNameEl = c.querySelector("string-name");
+        result.push(this.getName(nameEl, stringNameEl));
+      }
     }, this);
     return result;
   };
@@ -895,7 +905,9 @@ NlmToLensConverter.Prototype = function() {
       var memberListId = memberList.getAttribute("rid");
       var members = state.xmlDoc.querySelectorAll("#"+memberListId+" contrib");
       contribNode.members = _.map(members, function(m) {
-        return this.getName(m.querySelector("name"));
+        var nameEl = m.querySelector("name");
+        var stringNameEl = m.querySelector("string-name");
+        return this.getName(nameEl, stringNameEl);
       }, this);
     }
 
